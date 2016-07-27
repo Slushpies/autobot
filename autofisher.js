@@ -47,8 +47,8 @@ var spawnstatus = 'init';
 
 var master = '<username>'; //replace <username>
 var spawnCommand = '/warp wild'; //common
-var base = '<base teleport>'; //faction/region base teleport command
-var nearBase = vec3(<x,y,z>); //replace with coords neaby fishing area, could be replaced with findRedstone function.
+var base = '<base tp>'; //faction/region base teleport command
+var nearBase = vec3(<x,y,x>); //replace with coords neaby fishing area, could be replaced with findRedstone function.
 var caughtFish = "~!||| FISH CAUGHT |||!~";
 
 bot.chatAddPattern(/^(?:\[[^\]]*\] )?([^ :]*) ?: (.*)$/, "chat", "Essentials chat");
@@ -84,7 +84,7 @@ bot.on('spawn', function() {
     console.log("Teleported without reason.");
     break;
   }
-}
+});
 /*bot.on('spawn', function() { //may be needed, new spawn method hasnt been tested yet.
     spawncount += 1;
     console.log(spawncount);
