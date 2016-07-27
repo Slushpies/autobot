@@ -296,7 +296,15 @@ function selectRod() {
             console.log("Too many rods! May cause errors, expelling a rod.");
             bot.toss(346, null, 1, function() {
                 console.log("Tossed!");
-                return rod;
+                console.log("Equipping rod in hand...");
+                bot.equip(rod, 'hand');
+                setTimeout(function() {
+                    console.log("Casting rod...");
+                    setTimeout(bot.activateItem, 500);
+                    console.log("Idle...");
+                    cast = true;
+                    status = 'fishing';
+                }, 1000);
             });
         }
     } else if (!rod) {
