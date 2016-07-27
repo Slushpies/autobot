@@ -39,7 +39,7 @@ var cast = false;
 var count2 = 0;
 var spawncount = 0;
 var setup = false;
-var keep = false;
+var keep = false; //keep rods or throw away.
 var result = null;
 
 var status = 'init';
