@@ -6,7 +6,7 @@ var async = require('async');
 var vec3 = mineflayer.vec3;
 
 if (process.argv.length < 4 || process.argv.length > 6) {
-    console.log("Usage : node pkFisher.js <host> <port> [<name>] [<password>]");
+    console.log("Usage : node autofisher.js <host> <port> [<name>] [<password>]");
     process.exit(1);
 }
 
@@ -43,6 +43,7 @@ var keep = false;
 var result = null;
 
 var status = 'init';
+var spawnstatus = 'init';
 
 var master = '<username>'; //replace <username>
 var spawnCommand = '/warp wild'; //common
@@ -53,7 +54,38 @@ var caughtFish = "~!||| FISH CAUGHT |||!~";
 bot.chatAddPattern(/^(?:\[[^\]]*\] )?([^ :]*) ?: (.*)$/, "chat", "Essentials chat");
 bot.chatAddPattern(/^\[ ?([^ ]*) -> me ?] (.*)$/, "whisper", "Essentials whisper");
 
-bot.on('spawn', function() { //better way of doing this, will update soon.
+bot.on('spawn', function() {
+  switch(spawnstatus) {
+    case 'init':
+    console.log("Joined server, joining survival server.");
+    bot.chat("/survival");
+    spawnstatus = 'survival';
+    break;
+    case 'survival':
+    console.log("Joined survival server, checking location...");
+    setTimeout(function() {
+        var sword_count = bot.inventory.count(267);
+        if (sword_count > 0) { //swords mess up the bot, dont ask.
+            console.log("Sword found.");
+            bot.toss(267, null, 1, console.log("Tossed sword."));
+        } else {
+            console.log("No sword found on bot.");
+        }
+        findLamp();
+    }, 5000);
+    break;
+    case 'base tp':
+    console.log("Teleported to base.");
+    break;
+    case 'done':
+    console.log("Bot has teleported after already been setup. Something has gone wrong.");
+    break;
+    default:
+    console.log("Teleported without reason.");
+    break;
+  }
+}
+/*bot.on('spawn', function() { //may be needed, new spawn method hasnt been tested yet.
     spawncount += 1;
     console.log(spawncount);
     if (spawncount == 1) { //this part will need to be customized based on what server the bot is joining.
@@ -97,7 +129,7 @@ bot.on('spawn', function() { //better way of doing this, will update soon.
             }, 5000);
         }
     }
-});
+});*/
 
 //commands~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 bot.on('whisper', function(username, message) {
@@ -362,12 +394,11 @@ function findGoldPlate() {
         status = 'spawning';
         bot.navigate.to(goldPlates[0].position);
     } else {
-        console.log("No gold plates found.");
-        console.log("Doing base");
+        console.log("No gold plates found. Bot is not at spawn or base.");
+        console.log("Teleporting to base.");
         bot.chat(base);
-        setTimeout(function() {
-            findLamp(); //possible issue
-        }, 3000);
+        spawnstatus = 'base tp';
+        afterBase();
     }
 }
 
@@ -378,12 +409,12 @@ function findLamp() {
     });
     if (lampBlocks.length > 0) {
         status = 'walking to lamp';
+        spawnstatus = 'done';
         var temp = vec3(lampBlocks[0].position.x, lampBlocks[0].position.y + 2, lampBlocks[0].position.z);
         bot.navigate.to(temp);
     } else {
-        console.log("No lamp found.");
-        setup = true;
-        bot.chat(base);
+        console.log("No lamp found. Bot is not at fishing area. Checking for gold plates.");
+        findGoldPlate();
     }
 }
 
@@ -514,7 +545,7 @@ function findLapis() {
         matching: 22,
     });
     if (lapisBlocks.length > 0) {
-        console.log("walking to lapis block");
+        console.log("walking to lapis block.");
         var temp = vec3(lapisBlocks[0].position.x, lapisBlocks[0].position.y + 1, lapisBlocks[0].position.z);
         bot.navigate.to(temp);
     } else {
@@ -534,13 +565,13 @@ function checkBlock(id) {
     console.log("======block======\n" + standBlock[0] + "\n======block======");
     if (standBlock.length > 0) {
         if (id == 123) {
-            offset = 2; //if redstone lamp
+            offset = 2; //if redstone lamp due to layout
             console.log("offset = " + offset);
         } else {
             offset = 1; //any other block
             console.log("offset = " + offset);
         }
-        console.log("Standblock length: " + standBlock.length);
+        console.log("Matching blocks found: " + standBlock.length);
         var blockPosX = Math.floor(standBlock[0].position.x);
         var blockPosY = Math.floor(standBlock[0].position.y + offset);
         var blockposZ = Math.floor(standBlock[0].position.z);
@@ -549,8 +580,8 @@ function checkBlock(id) {
         var botPosZ = Math.floor(bot.entity.position.z);
         var tempA = vec3(blockPosX, blockPosY, blockposZ);
         var tempB = vec3(botPosX, botPosY, botPosZ);
-        console.log("==TempA==\nCoords: " + tempA + "\n==TempA==");
-        console.log("==TempB==\nCoords: " + tempB + "\n==TempB==");
+        console.log("==BLOCK==\nCoords: " + tempA + "\n==BLOCK==");
+        console.log("==BOT==\nCoords: " + tempB + "\n==BOT==");
         if (blockPosX == botPosX && blockposZ == botPosZ && blockPosY == botPosY) {
             result = true;
             console.log("Result: " + result);
@@ -559,4 +590,10 @@ function checkBlock(id) {
             console.log("Result: " + result);
         }
     }
+}
+
+function afterBase() {
+  setTimeout(function() {
+      findLamp();
+  }, 3000);
 }
