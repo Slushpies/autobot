@@ -47,8 +47,8 @@ var spawnstatus = 'init';
 
 var master = '<username>'; //replace <username>
 var spawnCommand = '/warp wild'; //common
-var base = '<base teleport>'; //faction/region base teleport command
-var nearBase = vec3(<x,y,z>); //replace with coords neaby fishing area, could be replaced with findRedstone function.
+var base = '<base tp>'; //faction/region base teleport command
+var nearBase = vec3(<x,y,x>); //replace with coords neaby fishing area, could be replaced with findRedstone function.
 var caughtFish = "~!||| FISH CAUGHT |||!~";
 
 bot.chatAddPattern(/^(?:\[[^\]]*\] )?([^ :]*) ?: (.*)$/, "chat", "Essentials chat");
@@ -84,7 +84,7 @@ bot.on('spawn', function() {
     console.log("Teleported without reason.");
     break;
   }
-}
+});
 /*bot.on('spawn', function() { //may be needed, new spawn method hasnt been tested yet.
     spawncount += 1;
     console.log(spawncount);
@@ -296,7 +296,15 @@ function selectRod() {
             console.log("Too many rods! May cause errors, expelling a rod.");
             bot.toss(346, null, 1, function() {
                 console.log("Tossed!");
-                return rod;
+                console.log("Equipping rod in hand...");
+                bot.equip(rod, 'hand');
+                setTimeout(function() {
+                    console.log("Casting rod...");
+                    setTimeout(bot.activateItem, 500);
+                    console.log("Idle...");
+                    cast = true;
+                    status = 'fishing';
+                }, 1000);
             });
         }
     } else if (!rod) {
